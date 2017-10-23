@@ -1,7 +1,3 @@
-#include <debug.h>
-#include <makros.h>
-#include <RCReceive.h>
-
 #include <SoftwareSerial9.h>
 
 //#define MOSI 11
@@ -10,26 +6,22 @@
 //#define RX MISO
 //#define LEDPIN 13
 
-#define TXL 4
-#define RXL 5
+#define TXL 5
+#define RXL 6
 
-#define TXR 2
-#define RXR 3
+#define TXR 3
+#define RXR 4
 
 #define led 13
 
 SoftwareSerial9 mySerialL(RXL, TXL);
 SoftwareSerial9 mySerialR(RXR, TXR);
-RCReceive rcReceiver;
-
-const byte PIN_RC = 7;
 
 void setup() {
   pinMode(led, OUTPUT);
   mySerialL.begin(26315);
   mySerialR.begin(26315);
   Serial.begin(115200);
-  rcReceiver.attach(PIN_RC);
 }
 
 char c = ' ';
@@ -37,12 +29,6 @@ signed int sp = 0;
 
 void loop() {
 
-  rcReceiver.poll();
-
-  if (rcReceiver.hasNP() && !rcReceiver.hasError()) {
-
-    byte value = rcReceiver.getValue();
-    
     Serial.println(c);
     if (c == ' ') {
       sp = 0;
@@ -55,9 +41,6 @@ void loop() {
     }  else if (c == '1') {
       sp -= 100;
     }
-
-    Serial.print("receiver ");
-    Serial.println(value);
     
     Serial.print("speed ");
     Serial.println(sp);
@@ -85,7 +68,5 @@ void loop() {
       digitalWrite(led, LOW);   // turn the LED on (HIGH is the voltage level)
     } while (!Serial.available());
     c = Serial.read();
-  } else if (rcReceiver.hasError()) {
-    // Fehlerbehandlung failsafe oder sowas...
-  }
+
 }
