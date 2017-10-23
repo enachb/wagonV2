@@ -19,10 +19,10 @@
 #define led 13
 
 SoftwareSerial9 mySerialL(RXL, TXL);
-SoftwareSerial9 mySerialR(RXR, TXR);
+//SoftwareSerial9 mySerialR(RXR, TXR);
 RCReceive rcReceiver;
 
-const byte PIN_RC = 2;
+const byte PIN_RC = 12;
 int i = 0;
 byte value = 127;
 signed int mapVal = 0;
@@ -30,10 +30,9 @@ signed int mapVal = 0;
 void setup() {
   pinMode(led, OUTPUT);
   mySerialL.begin(26315);
-  mySerialR.begin(26315);
+  //  mySerialR.begin(26315);
   Serial.begin(115200);
   rcReceiver.attach(PIN_RC);
-  //  rcReceiver.attachInt(PIN_RC); // doesn't give stable values
 
 }
 
@@ -52,6 +51,8 @@ void loop() {
     rcReceiver.poll();
     value = rcReceiver.getValue();
     mapVal = map(value, 0, 250, -500, 500);
+
+    //    long value = pulseIn(PIN_RC, HIGH);
 
     Serial.print("mapVal ");
     Serial.print(mapVal);
@@ -82,12 +83,12 @@ void sendToMotors(signed int motorL, signed int motorR) {
   mySerialL.write9((motorL >> 8) & 0xFF);
   mySerialL.write9(85);
 
-  mySerialR.write9(256);
-  mySerialR.write9(motorR & 0xFF);
-  mySerialR.write9((motorR >> 8) & 0xFF);
-  mySerialR.write9(motorR & 0xFF);
-  mySerialR.write9((motorR >> 8) & 0xFF);
-  mySerialR.write9(85);
+  //  mySerialR.write9(256);
+  //  mySerialR.write9(motorR & 0xFF);
+  //  mySerialR.write9((motorR >> 8) & 0xFF);
+  //  mySerialR.write9(motorR & 0xFF);
+  //  mySerialR.write9((motorR >> 8) & 0xFF);
+  //  mySerialR.write9(85);
 
 }
 
