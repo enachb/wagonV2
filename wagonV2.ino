@@ -10,11 +10,11 @@
 //#define RX MISO
 //#define LEDPIN 13
 
-#define TXL 4
-#define RXL 5
+#define TXL 5
+#define RXL 6
 
-#define TXR 2
-#define RXR 3
+#define TXR 3
+#define RXR 4
 
 #define led 13
 
@@ -22,7 +22,10 @@ SoftwareSerial9 mySerialL(RXL, TXL);
 SoftwareSerial9 mySerialR(RXR, TXR);
 RCReceive rcReceiver;
 
-const byte PIN_RC = 7;
+const byte PIN_RC = 2;
+int i = 0;
+byte value = 127;
+signed int mapVal = 0;
 
 void setup() {
   pinMode(led, OUTPUT);
@@ -30,19 +33,66 @@ void setup() {
   mySerialR.begin(26315);
   Serial.begin(115200);
   rcReceiver.attach(PIN_RC);
-}
+  //  rcReceiver.attachInt(PIN_RC); // doesn't give stable values
 
-char c = ' ';
-signed int sp = 0;
+}
 
 void loop() {
 
-  rcReceiver.poll();
+  if (rcReceiver.hasNP()) {
+    rcReceiver.poll();
+    value = rcReceiver.getValue();
+  }
 
-  if (rcReceiver.hasNP() && !rcReceiver.hasError()) {
+  //    signed int mapVal = map(value, 32, 225, -1550, 1550);
 
-    byte value = rcReceiver.getValue();
-    
+  digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
+
+  if (i % 10 == 0) {
+    rcReceiver.poll();
+    value = rcReceiver.getValue();
+    mapVal = map(value, 0, 250, -500, 500);
+
+    Serial.print("mapVal ");
+    Serial.print(mapVal);
+
+    Serial.print("   value ");
+    Serial.println(value);
+    i = 0;
+  }
+  i ++;
+
+  sendToMotors(mapVal, mapVal);
+
+  delayMicroseconds(300);
+  //delay(50);
+  digitalWrite(led, LOW);   // turn the LED on (HIGH is the voltage level)
+
+  if (!rcReceiver.hasNP() && rcReceiver.hasError()) {
+    Serial.println("****** ERROR");;
+  }
+}
+
+void sendToMotors(signed int motorL, signed int motorR) {
+
+  mySerialL.write9(256);
+  mySerialL.write9(motorL & 0xFF);
+  mySerialL.write9((motorL >> 8) & 0xFF);
+  mySerialL.write9(motorL & 0xFF);
+  mySerialL.write9((motorL >> 8) & 0xFF);
+  mySerialL.write9(85);
+
+  mySerialR.write9(256);
+  mySerialR.write9(motorR & 0xFF);
+  mySerialR.write9((motorR >> 8) & 0xFF);
+  mySerialR.write9(motorR & 0xFF);
+  mySerialR.write9((motorR >> 8) & 0xFF);
+  mySerialR.write9(85);
+
+}
+
+/*
+
     Serial.println(c);
     if (c == ' ') {
       sp = 0;
@@ -56,36 +106,19 @@ void loop() {
       sp -= 100;
     }
 
-    Serial.print("receiver ");
-    Serial.println(value);
-    
-    Serial.print("speed ");
-    Serial.println(sp);
-    Serial.print(" low byte ");
-    Serial.print((sp & 0xFF), HEX);
-    Serial.print(" high byte ");
-    Serial.println((sp >> 8) & 0xFF, HEX);
-    do {
-      digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
-      mySerialL.write9(256);
-      mySerialL.write9(sp & 0xFF);
-      mySerialL.write9((sp >> 8) & 0xFF);
-      mySerialL.write9(sp & 0xFF);
-      mySerialL.write9((sp >> 8) & 0xFF);
-      mySerialL.write9(85);
+    if (false) {
+      Serial.print("mapVal ");
+      Serial.println(mapVal);
 
-      mySerialR.write9(256);
-      mySerialR.write9(sp & 0xFF);
-      mySerialR.write9((sp >> 8) & 0xFF);
-      mySerialR.write9(sp & 0xFF);
-      mySerialR.write9((sp >> 8) & 0xFF);
-      mySerialR.write9(85);
+      Serial.print("receiver ");
+      Serial.println(value);
 
-      delayMicroseconds(300);
-      digitalWrite(led, LOW);   // turn the LED on (HIGH is the voltage level)
-    } while (!Serial.available());
-    c = Serial.read();
-  } else if (rcReceiver.hasError()) {
-    // Fehlerbehandlung failsafe oder sowas...
-  }
-}
+      Serial.print("speed ");
+      Serial.println(sp);
+      Serial.print(" low byte ");
+      Serial.print((sp & 0xFF), HEX);
+      Serial.print(" high byte ");
+      Serial.println((sp >> 8) & 0xFF, HEX);
+    }
+
+ */
